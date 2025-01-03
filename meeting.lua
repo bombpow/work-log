@@ -124,7 +124,7 @@ function meeting.start(name)
         print("\nOptions for meeting '" .. name .. "':")
         print("1. Create a new meeting '" .. name .. "'")
         local index = 2
-        for _, meetingName in ipairs(existingMeetings) do
+        for _, meetingName in ipairs(matchingMeetings) do -- Use `matchingMeetings` instead of `existingMeetings`
             print(index .. ". Start existing meeting '" .. meetingName .. "'")
             index = index + 1
         end
@@ -140,7 +140,11 @@ function meeting.start(name)
             end
             meeting.createMeeting(name)
         elseif choice >= 2 and choice < index then
-            local selectedMeeting = matchingMeetings[choice - 1]
+            local selectedMeeting = matchingMeetings[choice - 1] -- Use `matchingMeetings` here
+            if not selectedMeeting then
+                print("Error: Invalid meeting selected.")
+                return
+            end
             if currentMeeting then
                 print("Ending current meeting:", currentMeeting)
                 meeting.endMeeting()
@@ -148,13 +152,23 @@ function meeting.start(name)
             meeting.resumeMeeting(selectedMeeting)
         elseif choice == index then
             io.write("Enter a unique meeting name: ")
-            meeting.start(io.read())
+            local newName = io.read()
+            if newName and newName ~= "" then
+                meeting.start(newName)
+            else
+                print("Error: Invalid meeting name.")
+            end
         elseif choice == index + 1 then
             print("Meeting creation canceled.")
         else
             print("Invalid choice.")
         end
     else
+        print("No existing meetings match '" .. name .. "'. Creating a new meeting.")
+        if currentMeeting then
+            print("Ending current meeting:", currentMeeting)
+            meeting.endMeeting()
+        end
         meeting.createMeeting(name)
     end
 end
